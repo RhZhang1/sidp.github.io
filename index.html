@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Self-Imitated Diffusion Policy (SIDP) for efficient and robust visual navigation."
+    />
+    <meta
+      property="og:title"
+      content="Self-Imitated Diffusion Policy for Efficient and Robust Visual Navigation"
+    />
+    <meta
+      property="og:description"
+      content="SIDP learns from its own high-reward trajectories, removes auxiliary selectors, and reaches real-time performance on Jetson Orin Nano."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="assets/paper/overview.png" />
+    <meta name="theme-color" content="#005bac" />
+    <title>Self-Imitated Diffusion Policy for Efficient and Robust Visual Navigation</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+          displayMath: [
+            ["$$", "$$"],
+            ["\\[", "\\]"],
+          ],
+        },
+        svg: { fontCache: "global" },
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script defer src="script.js"></script>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="shell hero__shell">
+        <p class="eyebrow">IEEE Robotics and Automation Letters · Accepted May 2026</p>
+        <h1>Self-Imitated Diffusion Policy for Efficient and Robust Visual Navigation</h1>
+        <p class="subtitle">
+          SIDP learns from its own high-reward trajectories, concentrates the
+          diffusion policy around useful modes, and removes the generate-then-filter
+          selector stage that slows down prior methods.
+        </p>
+        <figure class="figure-panel figure-panel--video figure-panel--hero-intro" id="overview-video">
+          <div class="video-embed">
+            <video controls playsinline preload="metadata">
+              <source src="assets/paper/1770446322639-manas.mp4" type="video/mp4" />
+              Your browser does not support embedded MP4 playback.
+            </video>
+          </div>
+          <figcaption>
+            Project overview: SIDP motivation, method sketch, benchmarks, and
+            real-world deployment highlights.
+          </figcaption>
+        </figure>
+
+        <p class="authors">
+          Runhua Zhang<sup>1,2</sup> · Junyi Hou<sup>1,2</sup> · Changxu Cheng<sup>1</sup> ·
+          Qiyi Chen<sup>1</sup> · Tao Wang<sup>1</sup> · Wuyue Zhao<sup>1</sup>
+        </p>
+        <p class="affiliations">
+          <sup>1</sup><a href="https://www.uni-ubi.com/" target="_blank" rel="noopener noreferrer">Uni-Ubi Technology Co., Ltd.</a>, Hangzhou, China ·
+          <sup>2</sup>Zhejiang University · Corresponding author: Changxu Cheng
+        </p>
+
+        <nav class="hero__nav" aria-label="Page navigation">
+          <a class="chip chip--accent" href="assets/paper/SIDP-RA-L-2026.pdf">Paper PDF</a>
+          <a class="chip chip--blue" href="https://arxiv.org/abs/2601.22965" rel="noopener noreferrer" aria-label="arXiv paper page">
+            <svg class="chip__icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5" />
+              <text
+                x="8"
+                y="10.5"
+                text-anchor="middle"
+                font-family="Georgia, 'Times New Roman', serif"
+                font-size="8"
+                font-style="italic"
+                fill="currentColor"
+              >
+                χ
+              </text>
+            </svg>
+            <span>arXiv</span>
+          </a>
+          <a class="chip chip--github" href="https://github.com/RhZhang1/SIDP" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+            <svg class="chip__icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path
+                fill="currentColor"
+                d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.34c-2.01.44-2.53-.49-2.69-.94a2.12 2.12 0 0 0-.89-1.17c-.3-.16-.73-.55-.01-.56.68-.01 1.16.62 1.32.88.77 1.3 2 .93 2.49.71.08-.56.3-.93.54-1.14-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.58.82-2.14-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82a7.57 7.57 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.27.82 2.14 0 3.07-1.87 3.75-3.65 3.95.29.25.54.74.54 1.49l-.01 2.21c0 .21.14.46.55.38A8 8 0 0 0 8 0Z"
+              />
+            </svg>
+            <span>GitHub</span>
+          </a>
+          <a class="chip" href="#overview-video">Video</a>
+          <a class="chip" href="#overview">Overview</a>
+          <a class="chip" href="#abstract">Abstract</a>
+          <a class="chip" href="#method">Method</a>
+          <a class="chip" href="#results">Results</a>
+          <a class="chip" href="#ablations">Ablations</a>
+          <a class="chip" href="#deployment">Deployment</a>
+          <a class="chip" href="#bibtex">BibTeX</a>
+        </nav>
+
+        <div class="stat-grid" aria-label="Key paper metrics">
+          <article class="stat stat--blue">
+            <span class="stat__label">InternVLA-N1 S1</span>
+            <strong class="stat__value">79.11 / 72.72 / 83.35</strong>
+            <span class="stat__note">mSR, mSPL, and mRSR across the benchmark.</span>
+          </article>
+          <article class="stat stat--green">
+            <span class="stat__label">Jetson Orin Nano</span>
+            <strong class="stat__value">110 ms</strong>
+            <span class="stat__note">5-step DDIM inference, 2.48× faster than NavDP.</span>
+          </article>
+          <article class="stat stat--red">
+            <span class="stat__label">Real-world deployment</span>
+            <strong class="stat__value">90.25 mSR</strong>
+            <span class="stat__note">92.50% on Agilex T-rex and 88.00% on Unitree Go2.</span>
+          </article>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section section--tint" id="overview">
+        <div class="shell">
+          <div class="section__heading">
+            <h2>Overview</h2>
+            <p>
+              The final paper contrasts classic imitation diffusion with SIDP's
+              reward-guided self-imitation and shows the resulting real-world
+              deployment on two mobile platforms.
+            </p>
+          </div>
+
+          <figure class="figure-panel">
+            <button
+              class="figure-button"
+              type="button"
+              data-lightbox-src="assets/paper/overview.png"
+              data-lightbox-alt="SIDP overview figure from the paper"
+              aria-label="Open overview figure"
+            >
+              <img src="assets/paper/overview.png" alt="SIDP overview figure from the paper" />
+            </button>
+            <figcaption>
+              Left: classic imitation diffusion with suboptimal and redundant
+              trajectories. Right: SIDP concentrates the distribution around
+              high-quality paths. Bottom: real-world deployment on Agilex T-rex
+              and Unitree Go2.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section" id="abstract">
+        <div class="shell">
+          <div class="section__heading">
+            <h2>Abstract</h2>
+            <p>
+              SIDP replaces demonstration-driven diffusion training with
+              reward-guided self-imitation.
+            </p>
+          </div>
+
+          <div class="content-grid content-grid--two">
+            <article class="panel">
+              <p>
+                Diffusion policies can represent diverse trajectories, but standard
+                imitation learning often carries suboptimal demonstrations into
+                training and forces inference into a computationally expensive
+                generate-then-filter pipeline. SIDP instead samples from its own
+                policy, scores candidate trajectories with environment reward, and
+                updates the denoising model with a reward-weighted objective.
+              </p>
+            </article>
+
+            <article class="panel">
+              <h3>What changes</h3>
+              <ul class="list">
+                <li>
+                  Self-imitation concentrates the trajectory distribution and removes
+                  the need for auxiliary selectors.
+                </li>
+                <li>
+                  Goal-agnostic exploration preserves multimodality, while a
+                  reward-driven curriculum stabilizes cold-start training.
+                </li>
+                <li>
+                  The final system reports 79.11 mSR / 72.72 mSPL / 83.35 mRSR on
+                  InternVLA-N1 S1, 110 ms inference on Jetson Orin Nano, and 90.25
+                  mSR in real-world tests.
+                </li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tint" id="method">
+        <div class="shell">
+          <div class="section__heading">
+            <h2>Method</h2>
+            <p>
+              The policy samples candidate trajectories, keeps the top-ranked set by
+              reward, and fits a weighted denoising loss.
+            </p>
+          </div>
+
+          <div class="content-grid content-grid--two">
+            <figure class="figure-panel">
+              <button
+                class="figure-button"
+                type="button"
+                data-lightbox-src="assets/paper/method.png"
+                data-lightbox-alt="SIDP method diagram from the paper"
+                aria-label="Open method figure"
+              >
+                <img src="assets/paper/method.png" alt="SIDP method diagram from the paper" />
+              </button>
+              <figcaption>
+                Phase 1 samples N trajectories, phase 2 filters by reward, and phase 3
+                updates the diffusion model through weighted denoising.
+              </figcaption>
+            </figure>
+
+            <article class="panel">
+              <h3>Weighted update</h3>
+              <p>
+                The reward weights use a temperature-controlled softmax:
+              </p>
+              <div class="equation">
+                $$w(a_t^{(i)}) = \frac{\exp(r(s_t, a_t^{(i)})/\tau)}{\sum_{j=1}^{k} \exp(r(s_t, a_t^{(j)})/\tau)}$$
+                $$\mathcal{L}_{\text{SIDP}} = \sum_{i=1}^{k} w(a_t^{(i)})\, \mathbb{E}_{t_{dn}, \epsilon} \Big[\|\epsilon - \epsilon_\theta(a_t^{(i), t_{dn}}, t_{dn}, s_t)\|_2^2\Big]$$
+              </div>
+              <ul class="list">
+                <li>
+                  The paper finds \(\tau = 1.0\) to be the best balance between sharp
+                  selection and stable convergence.
+                </li>
+                <li>
+                  Goal-agnostic exploration keeps the policy multi-modal instead of
+                  collapsing onto a single path.
+                </li>
+                <li>
+                  Reward-driven curriculum learning filters unlearnable scenes early
+                  and reduces cold-start instability.
+                </li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="results">
+        <div class="shell">
+          <div class="section__heading">
+            <h2>Results</h2>
+            <p>
+              The main benchmark is InternVLA-N1 S1 in Isaac Sim, with 60 scenes and
+              100 start-goal pairs per scene.
+            </p>
+          </div>
+
+          <article class="panel panel--flush">
+            <div class="table-scroll">
+              <table class="wide-table">
+                <caption>
+                  Quantitative comparison on InternVLA-N1 S1.
+                </caption>
+                <thead>
+                  <tr>
+                    <th rowspan="3">Method</th>
+                    <th colspan="6">InternScenes</th>
+                    <th colspan="5">ClutteredEnv</th>
+                    <th rowspan="3">mSR</th>
+                    <th rowspan="3">mSPL</th>
+                    <th rowspan="3">mRSR</th>
+                  </tr>
+                  <tr>
+                    <th colspan="3">Commercial</th>
+                    <th colspan="3">Home</th>
+                    <th colspan="2">Easy (Base)</th>
+                    <th colspan="3">Hard</th>
+                  </tr>
+                  <tr>
+                    <th>SR</th>
+                    <th>SPL</th>
+                    <th>RSR</th>
+                    <th>SR</th>
+                    <th>SPL</th>
+                    <th>RSR</th>
+                    <th>SR</th>
+                    <th>SPL</th>
+                    <th>SR</th>
+                    <th>SPL</th>
+                    <th>RSR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>iPlanner</td>
+                    <td>53.02</td>
+                    <td>51.44</td>
+                    <td>59.04</td>
+                    <td>39.16</td>
+                    <td>37.27</td>
+                    <td>43.61</td>
+                    <td>89.80</td>
+                    <td>88.70</td>
+                    <td>80.69</td>
+                    <td>79.28</td>
+                    <td>89.86</td>
+                    <td>59.14</td>
+                    <td>57.57</td>
+                    <td>64.17</td>
+                  </tr>
+                  <tr>
+                    <td>ViPlanner</td>
+                    <td>64.43</td>
+                    <td>62.90</td>
+                    <td>78.50</td>
+                    <td>43.61</td>
+                    <td>42.07</td>
+                    <td>53.13</td>
+                    <td>82.08</td>
+                    <td>81.98</td>
+                    <td>67.24</td>
+                    <td>67.07</td>
+                    <td>81.92</td>
+                    <td>60.90</td>
+                    <td>59.83</td>
+                    <td>71.18</td>
+                  </tr>
+                  <tr>
+                    <td>NavDP</td>
+                    <td>71.25</td>
+                    <td>68.89</td>
+                    <td>76.31</td>
+                    <td>57.38</td>
+                    <td>55.08</td>
+                    <td>61.45</td>
+                    <td>93.37</td>
+                    <td>91.44</td>
+                    <td>88.71</td>
+                    <td>86.31</td>
+                    <td>95.01</td>
+                    <td>73.22</td>
+                    <td>70.95</td>
+                    <td>77.59</td>
+                  </tr>
+                  <tr>
+                    <td><strong>SIDP (Ours)</strong></td>
+                    <td><strong>81.19</strong></td>
+                    <td><strong>73.36</strong></td>
+                    <td><strong>86.04</strong></td>
+                    <td><strong>63.17</strong></td>
+                    <td><strong>56.48</strong></td>
+                    <td><strong>66.95</strong></td>
+                    <td><strong>94.36</strong></td>
+                    <td>89.86</td>
+                    <td><strong>91.58</strong></td>
+                    <td><strong>86.78</strong></td>
+                    <td><strong>97.05</strong></td>
+                    <td><strong>79.11</strong></td>
+                    <td><strong>72.72</strong></td>
+                    <td><strong>83.35</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <div class="content-grid content-grid--two results-grid">
+            <article class="panel">
+              <h3>Inference efficiency</h3>
+              <div class="table-scroll">
+                <table>
+                  <caption>
+                    Inference time and SR comparison on Jetson Orin Nano.
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th>Scheduler</th>
+                      <th>Steps</th>
+                      <th>Time (ms)</th>
+                      <th>SR</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>NavDP</td>
+                      <td>DDPM</td>
+                      <td>10</td>
+                      <td>273</td>
+                      <td>0.549</td>
+                    </tr>
+                    <tr>
+                      <td>NavDP</td>
+                      <td>DDIM</td>
+                      <td>10</td>
+                      <td>271</td>
+                      <td>0.548</td>
+                    </tr>
+                    <tr>
+                      <td>NavDP</td>
+                      <td>DDIM</td>
+                      <td>5</td>
+                      <td>142</td>
+                      <td>0.412</td>
+                    </tr>
+                    <tr>
+                      <td>NavDP</td>
+                      <td>DDIM</td>
+                      <td>3</td>
+                      <td>106</td>
+                      <td>0.275</td>
+                    </tr>
+                    <tr>
+                      <td><strong>SIDP</strong></td>
+                      <td>DDPM</td>
+                      <td>10</td>
+                      <td>132</td>
+                      <td>0.670</td>
+                    </tr>
+                    <tr>
+                      <td><strong>SIDP</strong></td>
+                      <td>DDIM</td>
+                      <td>10</td>
+                      <td>131</td>
+                      <td>0.670</td>
+                    </tr>
+                    <tr>
+                      <td><strong>SIDP</strong></td>
+                      <td>DDIM</td>
+                      <td>5</td>
+                      <td><strong>110</strong></td>
+                      <td><strong>0.674</strong></td>
+                    </tr>
+                    <tr>
+                      <td><strong>SIDP</strong></td>
+                      <td>DDIM</td>
+                      <td>3</td>
+                      <td>99</td>
+                      <td>0.655</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="panel__note">
+                The 5-step DDIM setting is the best balance, delivering 110 ms and
+                0.674 SR on the edge platform.
+              </p>
+            </article>
+
+            <figure class="figure-panel">
+              <button
+                class="figure-button"
+                type="button"
+                data-lightbox-src="assets/paper/robustness.png"
+                data-lightbox-alt="SIDP robustness to corruptions"
+                aria-label="Open robustness figure"
+              >
+                <img
+                  src="assets/paper/robustness.png"
+                  alt="SIDP robustness to corruptions"
+                />
+              </button>
+              <figcaption>
+                Under Gaussian noise, brightness decay, and contrast reduction, SIDP
+                keeps roughly 80% RSR at severity level 5, while NavDP falls below
+                65%.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tint" id="ablations">
+        <div class="shell">
+          <div class="section__heading">
+            <h2>Ablations</h2>
+            <p>
+              The ablations cover reward-guided self-imitation, goal-agnostic
+              exploration, and the DAgger comparison.
+            </p>
+          </div>
+
+          <div class="figure-grid figure-grid--ablation">
+            <figure class="figure-panel">
+              <button
+                class="figure-button"
+                type="button"
+                data-lightbox-src="assets/paper/temperature-curves.png"
+                data-lightbox-alt="Temperature sweep training curves"
+                aria-label="Open temperature sweep figure"
+              >
+                <img
+                  src="assets/paper/temperature-curves.png"
+                  alt="Temperature sweep training curves"
+                />
+              </button>
+              <figcaption>
+                Training curves across different temperature settings; the paper finds
+                \(\tau = 1.0\) to be the best choice.
+              </figcaption>
+            </figure>
+
+            <figure class="figure-panel">
+              <button
+                class="figure-button"
+                type="button"
+                data-lightbox-src="assets/paper/temperature-bars.png"
+                data-lightbox-alt="Temperature ablation bar chart"
+                aria-label="Open temperature summary figure"
+              >
+                <img
+                  src="assets/paper/temperature-bars.png"
+                  alt="Temperature ablation bar chart"
+                />
+              </button>
+              <figcaption>
+                SR, SPL, CR, and DTG all favor the \(\tau = 1.0\) setting.
+              </figcaption>
+            </figure>
+
+            <figure class="figure-panel">
+              <button
+                class="figure-button"
+                type="button"
+                data-lightbox-src="assets/paper/goal-agnostic.png"
+                data-lightbox-alt="Goal-agnostic training ablation"
+                aria-label="Open goal-agnostic figure"
+              >
+                <img src="assets/paper/goal-agnostic.png" alt="Goal-agnostic training ablation" />
+              </button>
+              <figcaption>
+                Goal-agnostic training increases navigation performance and maintains
+                a broader exploration area.
+              </figcaption>
+            </figure>
+
+            <figure class="figure-panel">
+              <button
+                class="figure-button"
+                type="button"
+                data-lightbox-src="assets/paper/dagger.png"
+                data-lightbox-alt="Comparison with DAgger"
+                aria-label="Open DAgger comparison figure"
+              >
+                <img src="assets/paper/dagger.png" alt="Comparison with DAgger" />
+              </button>
+              <figcaption>
+                Synthetic DAgger underperforms SIDP, which keeps corrections inside the
+                policy's own representation space.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="deployment">
+        <div class="shell">
+          <div class="section__heading">
+            <h2>Real-world deployment</h2>
+            <p>
+              The paper validates SIDP on Agilex T-rex and Unitree Go2 with depth-based
+              reactive navigation.
+            </p>
+          </div>
+
+          <div class="content-grid content-grid--two">
+            <figure class="figure-panel">
+              <button
+                class="figure-button"
+                type="button"
+                data-lightbox-src="assets/paper/realworld.png"
+                data-lightbox-alt="Real-world deployment figure"
+                aria-label="Open real-world deployment figure"
+              >
+                <img src="assets/paper/realworld.png" alt="Real-world deployment figure" />
+              </button>
+              <figcaption>
+                The final paper shows both platforms, representative POVs, static scene
+                tests, and motion-blur trajectory traces.
+              </figcaption>
+            </figure>
+
+            <article class="panel">
+              <h3>Success rate comparison</h3>
+              <div class="table-scroll">
+                <table>
+                  <caption>
+                    Real-world Success Rate (SR, %).
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th>Agilex T-rex</th>
+                      <th>Unitree Go2</th>
+                      <th>mSR</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>iPlanner</td>
+                      <td>62.50</td>
+                      <td>55.00</td>
+                      <td>58.75</td>
+                    </tr>
+                    <tr>
+                      <td>ViPlanner</td>
+                      <td>71.00</td>
+                      <td>64.50</td>
+                      <td>67.75</td>
+                    </tr>
+                    <tr>
+                      <td>NavDP</td>
+                      <td>85.00</td>
+                      <td>81.50</td>
+                      <td>83.25</td>
+                    </tr>
+                    <tr>
+                      <td><strong>SIDP (Ours)</strong></td>
+                      <td><strong>92.50</strong></td>
+                      <td><strong>88.00</strong></td>
+                      <td><strong>90.25</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="panel__note">
+                SIDP improves the mean real-world SR by 7.0 points over NavDP while
+                staying collision-free across heterogeneous platforms.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tint" id="bibtex">
+        <div class="shell">
+          <div class="section__heading">
+            <h2>BibTeX</h2>
+            <p>Click the citation block to copy it.</p>
+          </div>
+
+          <button class="copy-card panel" type="button" data-copy-bib aria-label="Copy BibTeX citation">
+            <pre><code>@article{zhang2026sidp,
+  title   = {Self-Imitated Diffusion Policy for Efficient and Robust Visual Navigation},
+  author  = {Runhua Zhang and Junyi Hou and Changxu Cheng and Qiyi Chen and Tao Wang and Wuyue Zhao},
+  journal = {IEEE Robotics and Automation Letters},
+  year    = {2026},
+  note    = {Accepted},
+  eprint  = {2601.22965},
+  archiveprefix = {arXiv},
+  url     = {https://arxiv.org/abs/2601.22965}
+}</code></pre>
+            <span class="copy-status" data-copy-status>Copy BibTeX</span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>IEEE Robotics and Automation Letters preprint, accepted May 5, 2026.</p>
+    </footer>
+
+    <dialog class="lightbox" data-lightbox>
+      <button class="lightbox__close" type="button" data-lightbox-close aria-label="Close full-size figure">
+        Close
+      </button>
+      <img src="" alt="" data-lightbox-image />
+    </dialog>
+  </body>
+</html>
