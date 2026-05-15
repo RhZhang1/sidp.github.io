@@ -86,7 +86,8 @@ p {
 }
 
 .eyebrow {
-  margin-bottom: 12px;
+  margin-top: 10px;
+  margin-bottom: 0;
   color: var(--blue);
   font-size: 0.82rem;
   font-weight: 800;
@@ -271,7 +272,7 @@ h1 {
 .content-grid {
   display: grid;
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .content-grid--two {
@@ -286,7 +287,7 @@ h1 {
 .figure-grid--ablation {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px 24px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .panel,
@@ -349,6 +350,9 @@ h1 {
 }
 
 .figure-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -363,7 +367,13 @@ h1 {
 
 .figure-button img {
   width: 100%;
+  height: 260px;
+  object-fit: contain;
   background: #ffffff;
+}
+
+.figure-panel--overview .figure-button img {
+  height: 420px;
 }
 
 .figure-button:focus-visible,
@@ -375,6 +385,7 @@ h1 {
 }
 
 .figure-panel figcaption {
+  min-height: 4.8em;
   padding: 12px 14px 16px;
   color: var(--muted);
   font-size: 0.92rem;
@@ -616,6 +627,10 @@ tbody td {
   .figure-panel figcaption {
     padding: 10px 12px 14px;
     font-size: 0.9rem;
+  }
+
+  .figure-panel--overview .figure-button img {
+    height: 340px;
   }
 
   .copy-card pre {
